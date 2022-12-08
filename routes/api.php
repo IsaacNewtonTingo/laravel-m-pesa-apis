@@ -21,3 +21,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/access-token', [PaymentController::class, 'generateAccessToken']);
 Route::post('/stk-push', [PaymentController::class, 'stkPush']);
+Route::post('/check-payment', [PaymentController::class, 'checkPayment']);

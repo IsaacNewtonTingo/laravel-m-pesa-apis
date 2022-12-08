@@ -7,6 +7,7 @@ use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
+    //daraja option
     public function generateAccessToken()
     {
         $consumer_key = 'dM1AQniOznQkoFohuPGXowgMALOcUwsr';
@@ -38,7 +39,7 @@ class PaymentController extends Controller
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer IQfcteM6a00ZZmxl4v7tBLVxvJWZ'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer qB1LYj4DiNPwrQbhGUM54AwFKQ4a'));
 
         $curl_post_data = array(
             "BusinessShortCode" => $business_shortcode,
@@ -63,6 +64,57 @@ class PaymentController extends Controller
         $curl_response = curl_exec($curl);
 
         return $curl_response;
+    }
+
+    public function checkPayment(Request $request)
+    {
+        $checkoutRequestID = $request->checkoutRequestID;
+
+        $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query';
+        $business_shortcode = 174379;
+        $passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
+        $timestamp = Carbon::rawParse('now')->isoFormat('YYYYMMDDHHmmss');
+        $password = base64_encode($business_shortcode . $passkey . $timestamp);
+        $body =
+            [
+                "BusinessShortCode" => "174379",
+                "Password" => $password,
+                "Timestamp" => $timestamp,
+                "CheckoutRequestID" => $checkoutRequestID
+            ]
+        ;
+
+        $request_body = json_encode($body);
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer qB1LYj4DiNPwrQbhGUM54AwFKQ4a'));
+
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $request_body);
+
+
+
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+
+        curl_close($curl);
+
+
+        if ($err) {
+            return $err;
+        } else {
+            return $response;
+        }
+
+
+    }
+
+
+    //Tiny pesa options
+    public function makePayment()
+    {
 
     }
 }
