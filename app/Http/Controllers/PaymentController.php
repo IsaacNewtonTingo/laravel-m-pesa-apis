@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -28,18 +29,23 @@ class PaymentController extends Controller
         return $access_token->access_token;
     }
 
-    public function stkPush()
+    public function stkPush(Request $request)
     {
+        Log::info("Sending request");
+
+        $fullName = $request->fullName;
+        $phoneNumber = $request->phoneNumber;
+        $amount = $request->amount;
+
         $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
         $business_shortcode = 174379;
         $passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
         $timestamp = Carbon::rawParse('now')->isoFormat('YYYYMMDDHHmmss');
         $password = base64_encode($business_shortcode . $passkey . $timestamp);
-        $amount = 1;
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer qB1LYj4DiNPwrQbhGUM54AwFKQ4a'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type:application/json', 'Authorization:Bearer CrVlN4LbXSoNPcikGqeFZ9qmoFOp'));
 
         $curl_post_data = array(
             "BusinessShortCode" => $business_shortcode,
@@ -47,10 +53,10 @@ class PaymentController extends Controller
             "Timestamp" => $timestamp,
             "TransactionType" => "CustomerPayBillOnline",
             "Amount" => $amount,
-            "PartyA" => 254724753175,
+            "PartyA" => $phoneNumber,
             "PartyB" => 174379,
-            "PhoneNumber" => 254724753175,
-            "CallBackURL" => "https://b720-105-27-98-86.ngrok.io/api/callback",
+            "PhoneNumber" => $phoneNumber,
+            "CallBackURL" => "https://42e8-105-27-98-86.ngrok.io/api/callback",
             "AccountReference" => "CompanyXLTD",
             "TransactionDesc" => "Payment of X"
         );
@@ -61,9 +67,23 @@ class PaymentController extends Controller
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
 
-        $curl_response = curl_exec($curl);
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
 
-        return $curl_response;
+        curl_close($curl);
+
+
+        if ($err) {
+            return $err;
+        } else {
+            return $response;
+        }
+    }
+
+    public function callback(Request $request)
+    {
+        $body = $request->Body;
+        Log::info("Data recieved");
     }
 
     public function checkPayment(Request $request)
@@ -115,6 +135,38 @@ class PaymentController extends Controller
     //Tiny pesa options
     public function makePayment()
     {
+        $url = "https://www.tinypesa.com/api/v1/express/initialize";
+
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt(
+            $curl,
+        CURLOPT_HTTPHEADER,
+            array("Content-Type: application/x-www-form-urlencoded", "ApiKey: UgytELO94K8")
+        );
+        $data = array(
+            'amount' => 50,
+            'msisdn' => '0724753175',
+            'account_no' => '200'
+        );
+
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+
+        $response = curl_exec($curl);
+
+        $err = curl_error($curl);
+
+        curl_close($curl);
+
+
+        if ($err) {
+            return $err;
+        } else {
+            return $response;
+        }
 
     }
 }
