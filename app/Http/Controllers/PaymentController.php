@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -37,7 +38,7 @@ class PaymentController extends Controller
         //------------generate access token-----------
 
         $consumer_key = env('MPESA_CONSUMER_KEY');
-        $consumer_secret = env('l31P1jJLbwhKkHzy');
+        $consumer_secret = env('MPESA_CONSUMER_SECRET');
         $credentials = base64_encode($consumer_key . ':' . $consumer_secret);
         $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
 
@@ -52,7 +53,7 @@ class PaymentController extends Controller
         $error = curl_error($curl);
 
         if ($error) {
-
+            return "An error occured";
         } else {
             $access_token = json_decode($access_token_response);
             $new_access_token = $access_token->access_token;
@@ -92,6 +93,10 @@ class PaymentController extends Controller
             $response = curl_exec($curl);
             $err = curl_error($curl);
 
+            $decoded_response = json_decode($response);
+
+            $CheckoutRequestID = $decoded_response->CheckoutRequestID;
+
             curl_close($curl);
 
 
@@ -100,14 +105,27 @@ class PaymentController extends Controller
             } else {
                 return $response;
             }
-
         }
     }
 
     public function callback(Request $request)
     {
         $body = $request->Body;
-        Log::info("Data recieved");
+        if ($body->stkCallback->ResultCode === 0) {
+
+            $store_data = $body->only([
+                'checkoutRequestID' => $body->stkCallback->CheckoutRequestID,
+                'phoneNumber' => $body->stkCallback->CallbackMetadata->Item[3]->Value,
+                'amount' => $body->stkCallback->CallbackMetadata->Item[0]->Value,
+                'mpesaCode' => $body->stkCallback->CallbackMetadata->Item[1]->Value,
+            ]);
+
+            $new_payment = Payment::create($store_data);
+
+            Log::info($new_payment);
+        } else {
+            Log::info($body->stkCallback->ResultDesc);
+        }
     }
 
     public function checkPayment(Request $request)
