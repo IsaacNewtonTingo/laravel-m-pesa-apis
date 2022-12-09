@@ -36,8 +36,8 @@ class PaymentController extends Controller
         $amount = $request->amount;
         //------------generate access token-----------
 
-        $consumer_key = 'dM1AQniOznQkoFohuPGXowgMALOcUwsr';
-        $consumer_secret = 'l31P1jJLbwhKkHzy';
+        $consumer_key = env('MPESA_CONSUMER_KEY');
+        $consumer_secret = env('l31P1jJLbwhKkHzy');
         $credentials = base64_encode($consumer_key . ':' . $consumer_secret);
         $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
 
@@ -61,7 +61,7 @@ class PaymentController extends Controller
 
             $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
             $business_shortcode = 174379;
-            $passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
+            $passkey = env('MPESA_PASS_KEY');
             $timestamp = Carbon::rawParse('now')->isoFormat('YYYYMMDDHHmmss');
             $password = base64_encode($business_shortcode . $passkey . $timestamp);
 
@@ -116,7 +116,7 @@ class PaymentController extends Controller
 
         $url = 'https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query';
         $business_shortcode = 174379;
-        $passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
+        $passkey = env('MPESA_PASS_KEY');
         $timestamp = Carbon::rawParse('now')->isoFormat('YYYYMMDDHHmmss');
         $password = base64_encode($business_shortcode . $passkey . $timestamp);
         $body =
