@@ -12,8 +12,8 @@ class PaymentController extends Controller
     //daraja option
     public function generateAccessToken()
     {
-        $consumer_key = 'dM1AQniOznQkoFohuPGXowgMALOcUwsr';
-        $consumer_secret = 'l31P1jJLbwhKkHzy';
+        $consumer_key = '';
+        $consumer_secret = '';
         $credentials = base64_encode($consumer_key . ':' . $consumer_secret);
 
         $url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
@@ -79,7 +79,7 @@ class PaymentController extends Controller
                 "PartyA" => $phoneNumber,
                 "PartyB" => 174379,
                 "PhoneNumber" => $phoneNumber,
-                "CallBackURL" => "https://42e8-105-27-98-86.ngrok.io/api/callback",
+                "CallBackURL" => "https://5550-105-27-98-86.ngrok.io/api/callback",
                 "AccountReference" => "CompanyXLTD",
                 "TransactionDesc" => "Payment of X"
             );
@@ -93,9 +93,9 @@ class PaymentController extends Controller
             $response = curl_exec($curl);
             $err = curl_error($curl);
 
-            $decoded_response = json_decode($response);
+            // $decoded_response = json_decode($response);
 
-            $CheckoutRequestID = $decoded_response->CheckoutRequestID;
+            // $CheckoutRequestID = $decoded_response->CheckoutRequestID;
 
             curl_close($curl);
 
@@ -110,22 +110,24 @@ class PaymentController extends Controller
 
     public function callback(Request $request)
     {
-        $body = $request->Body;
-        if ($body->stkCallback->ResultCode === 0) {
+        Log::info('------------data here-------------');
+        // $body = $request->Body;
 
-            $store_data = $body->only([
-                'checkoutRequestID' => $body->stkCallback->CheckoutRequestID,
-                'phoneNumber' => $body->stkCallback->CallbackMetadata->Item[3]->Value,
-                'amount' => $body->stkCallback->CallbackMetadata->Item[0]->Value,
-                'mpesaCode' => $body->stkCallback->CallbackMetadata->Item[1]->Value,
-            ]);
+        // if ($body->stkCallback->ResultCode === 0) {
 
-            $new_payment = Payment::create($store_data);
+        //     $store_data = $body->only([
+        //         'checkoutRequestID' => $body->stkCallback->CheckoutRequestID,
+        //         'phoneNumber' => $body->stkCallback->CallbackMetadata->Item[3]->Value,
+        //         'amount' => $body->stkCallback->CallbackMetadata->Item[0]->Value,
+        //         'mpesaCode' => $body->stkCallback->CallbackMetadata->Item[1]->Value,
+        //     ]);
 
-            Log::info($new_payment);
-        } else {
-            Log::info($body->stkCallback->ResultDesc);
-        }
+        //     $new_payment = Payment::create($store_data);
+
+        //     Log::info($new_payment);
+        // } else {
+        //     Log::info($body->stkCallback->ResultDesc);
+        // }
     }
 
     public function checkPayment(Request $request)
